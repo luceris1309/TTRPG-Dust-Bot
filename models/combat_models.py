@@ -1,6 +1,3 @@
-# models/combat_models.py
-# Gộp: Effect, Shield, CombatActor, Combat State
-
 from typing import Dict, List, Optional, Any, Union, Set
 from dataclasses import dataclass, field
 import asyncio

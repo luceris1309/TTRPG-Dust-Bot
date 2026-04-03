@@ -1,6 +1,3 @@
-# core/gsheet_client.py
-# Quản lý kết nối Google Sheets, cache, batch load theo cột load
-
 import asyncio
 from typing import Dict, Any, Optional, List, Tuple
 import gspread_asyncio
@@ -45,13 +42,11 @@ class GoogleSheetsClient:
             value, timestamp = self._cache[key]
             if current_timestamp() - timestamp < TTL_SECONDS:
                 return value
-            # Hết hạn, xóa cache cũ
             del self._cache[key]
         
         async with self._rate_limiter:
             try:
                 sheet = await self.spreadsheet.worksheet(sheet_name)
-                # Tìm hàng có var = var
                 cell_list = await sheet.findall(var, in_column=1)
                 if not cell_list:
                     logger.warning(f"Không tìm thấy var '{var}' trong sheet '{sheet_name}'")
@@ -108,7 +103,6 @@ class GoogleSheetsClient:
                     if var_name not in result:
                         result[var_name] = {}
                     result[var_name][load_col_name] = value
-                    # Lưu vào cache luôn
                     cache_key = self._make_cache_key(sheet_name, var_name, load_col_name)
                     self._cache[cache_key] = (value, current_timestamp())
                 return result
@@ -121,7 +115,6 @@ class GoogleSheetsClient:
         try:
             async with self._rate_limiter:
                 source = await self.spreadsheet.worksheet(source_sheet_name)
-                # Gspread không có duplicate trực tiếp, dùng API copy
                 new_sheet = await source.duplicate(new_sheet_name=new_sheet_name)
                 logger.info(f"Đã tạo sheet mới '{new_sheet_name}' từ '{source_sheet_name}'")
                 return True
@@ -143,7 +136,6 @@ class GoogleSheetsClient:
                     return False
                 col_num = headers.index(index) + 1
                 await sheet.update_cell(row_num, col_num, str(value))
-                # Xóa cache cũ
                 cache_key = self._make_cache_key(sheet_name, var, index)
                 if cache_key in self._cache:
                     del self._cache[cache_key]

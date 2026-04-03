@@ -1,6 +1,3 @@
-# core/parser.py
-# Lexer + Parser xây dựng AST từ chuỗi biểu thức
-
 import re
 from typing import List, Optional, Union, Any, Tuple
 from dataclasses import dataclass

@@ -1,6 +1,3 @@
-# utils/helpers.py
-# Gộp các tiện ích: dice, rate limiter, logger, helper functions
-
 import asyncio
 import logging
 import re
@@ -19,11 +16,9 @@ def setup_logger(name: str = "ttrpg_bot", level: int = logging.INFO) -> logging.
     logger = logging.getLogger(name)
     logger.setLevel(level)
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    # Console handler
     ch = logging.StreamHandler()
     ch.setFormatter(formatter)
     logger.addHandler(ch)
-    # File handler
     fh = logging.FileHandler('bot.log', encoding='utf-8')
     fh.setFormatter(formatter)
     logger.addHandler(fh)
@@ -53,7 +48,6 @@ class RateLimiter:
         self.release()
 
 # -------------------- DICE ROLLER --------------------
-# Regex nhận dạng dice: 2d6!kh, 1d20, 3d8!=une, v.v.
 DICE_PATTERN = re.compile(
     r'^(\d+)d(\d+)(?:(!|=[eE]?=?|!=une))?(?:\(?(kh|kl)\)?)?$',
     re.IGNORECASE
@@ -77,7 +71,6 @@ def roll_dice(expression: str) -> List[int]:
     for _ in range(num):
         roll = random.randint(1, faces)
         results.append(roll)
-        # Xử lý explode
         if explode_mode:
             if explode_mode == '!':
                 while roll == faces:
@@ -89,13 +82,10 @@ def roll_dice(expression: str) -> List[int]:
                     roll = random.randint(1, faces)
                     results.append(roll)
             elif explode_mode == '!=une':
-                # Nổ khi khác une (une = 1) -> tức là nổ khi không phải 1
                 while roll != 1:
                     roll = random.randint(1, faces)
                     results.append(roll)
-            # Các trường hợp khác không xử lý thêm
     
-    # Lọc keep high/low
     if keep_mode == 'kh':
         results = [max(results)] if results else []
     elif keep_mode == 'kl':
@@ -150,12 +140,10 @@ def eval_condition(cond: Any, context: dict) -> bool:
     if isinstance(cond, (int, float)):
         return cond != 0
     if isinstance(cond, str):
-        # Nếu là chuỗi "true" / "false" thì chuyển
         lower = cond.lower()
         if lower == "true":
             return True
         if lower == "false":
             return False
-        # Nếu không thì coi là True nếu chuỗi không rỗng
         return bool(cond)
     return bool(cond)

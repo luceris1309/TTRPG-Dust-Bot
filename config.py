@@ -1,6 +1,3 @@
-# config.py
-# Cấu hình toàn cục cho bot
-
 import os
 from typing import Dict, Any
 
@@ -14,11 +11,8 @@ SHEET_TEMPLATE = "Template"
 # ID của spreadsheet chính (lấy từ biến môi trường hoặc hardcode)
 SPREADSHEET_ID = os.getenv("TTRPG_SPREADSHEET_ID", "")
 
-# Cột load mặc định nếu ô load trống
-DEFAULT_LOAD_COLUMN = "a"
-
 # -------------------- CACHE & TTL --------------------
-TTL_SECONDS = 900  # 15 phút
+TTL_SECONDS = 900  # giây
 MAX_RECURSION_DEPTH = 10
 
 # -------------------- RATE LIMIT --------------------
@@ -39,12 +33,12 @@ COMBAT_KO_MARKER = "💀"
 # -------------------- CÁC UI MẶC ĐỊNH CHO CONFIG --------------------
 DEFAULT_CONFIG_ROWS: Dict[str, str] = {
     "profile_ui": '"**Tên:** " & {name} & "\\n**HP:** " & {hp} & "/" & {max_hp} & "\\n**MP:** " & {mp}',
-    "stat_ui": '"**ATK:** " & {atk} & "\\n**DEF:** " & {def} & "\\n**AGI:** " & {agi}',
+    "stat_ui": '""',
     "inventory_ui": '"Chưa có vật phẩm."',
     "equipment_ui": '"Chưa có trang bị."',
-    "skill_ui": '"Danh sách kỹ năng:\\n" & join({skill_list}, "\\n")',
-    "initiative_formula": "1d20 + {agi}",
-    "default_hitpoint": "10",
+    "skill_ui": '"")',
+    "initiative_formula": "1d20",
+    "default_hitpoint": "0",
 }
 
 # -------------------- HÀM TIỆN ÍCH --------------------

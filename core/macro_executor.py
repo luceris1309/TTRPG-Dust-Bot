@@ -1,6 +1,3 @@
-# core/macro_executor.py
-# Thực thi macro: parse nội dung, gọi evaluator, xử lý kết quả
-
 from typing import List, Optional, Tuple, Union, Any
 from core.parser import parse
 from core.evaluator import Evaluator
@@ -30,7 +27,6 @@ class MacroExecutor:
         Trả về (message, success)
         success = True nếu macro được thực thi thành công (có side-effect hoặc tính toán được)
         """
-        # Lấy nội dung macro
         macro_content = None
         if hasattr(actor, 'macro_pool'):
             macro_content = actor.macro_pool.get(macro_name)
@@ -40,7 +36,6 @@ class MacroExecutor:
         if not macro_content:
             return format_macro_result(actor.name, macro_name, f"Không tìm thấy macro '{macro_name}'", error=True), False
         
-        # Cấu hình evaluator
         self.evaluator.reset_context()
         self.evaluator.current_actor = actor
         self.evaluator.target_list = target_actors
@@ -50,26 +45,21 @@ class MacroExecutor:
         if global_effect_pool:
             self.evaluator.global_effect_pool = global_effect_pool
         
-        # Parse nội dung macro
         try:
             ast = parse(macro_content)
         except Exception as e:
             logger.error(f"Parse macro '{macro_name}' thất bại: {e}\nNội dung: {macro_content}")
             return format_macro_result(actor.name, macro_name, f"Lỗi cú pháp: {str(e)}", error=True), False
         
-        # Thực thi
         try:
             result = await self.evaluator.evaluate(ast)
-            # Tạo message kết quả
             if not in_combat:
-                # Ngoài combat: chỉ hiển thị kết quả tính toán
                 if isinstance(result, (int, float, str)):
                     msg = str(result)
                 else:
                     msg = "Macro đã được xử lý (không có side-effect)"
                 return format_macro_result(actor.name, macro_name, msg, error=False), True
             else:
-                # Trong combat: có thể có side-effect, nhưng ta chỉ hiển thị thông báo ngắn
                 if result == 0:
                     msg = "Thực thi thành công."
                 else:
@@ -85,7 +75,6 @@ class MacroExecutor:
         Trả về giá trị initiative đã tính.
         """
         formula = self.evaluator.global_config.get("initiative_formula", "1d20")
-        # Tạo evaluator tạm
         self.evaluator.reset_context()
         self.evaluator.current_actor = actor
         self.evaluator.in_combat = True

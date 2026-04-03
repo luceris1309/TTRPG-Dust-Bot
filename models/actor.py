@@ -1,6 +1,3 @@
-# models/actor.py
-# Lưu trữ runtime của actor gốc (persistent, không chứa dữ liệu combat)
-
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from utils.helpers import get_logger

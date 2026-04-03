@@ -1,7 +1,3 @@
-# cogs/commands.py
-# Gộp tất cả lệnh Discord: combat, macro, hub, npc, admin
-# Sử dụng app_commands.Group để có cú pháp /combat set, /macro initiative, ...
-
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -40,7 +36,6 @@ class TTRPGCog(commands.Cog):
         self.npc_roles: Dict[int, CombatActor] = {}          # role_id -> CombatActor
         self.user_control: Dict[int, int] = {}              # user_id -> role_id đang điều khiển
 
-        # Các nhóm lệnh
         self.combat_group = app_commands.Group(name="combat", description="Quản lý combat")
         self.macro_group = app_commands.Group(name="macro", description="Gọi macro")
         self.npc_group = app_commands.Group(name="npc", description="Quản lý NPC")
@@ -250,8 +245,6 @@ class TTRPGCog(commands.Cog):
         user_id = interaction.user.id
         channel_id = interaction.channel_id
         combat = self.combat_engine.get_combat(channel_id)
-
-        # Xác định actor hiện tại (có thể là NPC nếu đang điều khiển)
         actor = None
         if user_id in self.user_control:
             role_id = self.user_control[user_id]
@@ -500,11 +493,9 @@ class HubView(discord.ui.View):
 # -------------------- SETUP --------------------
 async def setup(bot: commands.Bot, gsheet_client: GoogleSheetsClient):
     cog = TTRPGCog(bot, gsheet_client)
-    # Đăng ký các group lệnh vào bot
     bot.tree.add_command(cog.combat_group)
     bot.tree.add_command(cog.macro_group)
     bot.tree.add_command(cog.npc_group)
     bot.tree.add_command(cog.admin_group)
-    # Lệnh hub riêng (không group)
     bot.tree.add_command(cog.hub)
     await bot.add_cog(cog)

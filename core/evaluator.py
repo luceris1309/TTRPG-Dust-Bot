@@ -1,6 +1,3 @@
-# core/evaluator.py
-# Thực thi AST, quản lý context, gọi hàm từ FunctionRegistry
-
 import asyncio
 from typing import Any, Dict, List, Optional, Union
 from models.ast_nodes import (
@@ -23,8 +20,6 @@ class Evaluator:
         self.function_registry = function_registry
         self.max_recursion_depth = max_recursion_depth
         self.current_depth = 0
-        
-        # Context khi thực thi macro
         self.current_actor: Optional[Union[ActorRuntime, CombatActor]] = None
         self.target_list: List[Union[ActorRuntime, CombatActor]] = []
         self.local_vars: Dict[str, Any] = {}
@@ -77,16 +72,13 @@ class Evaluator:
         var_name = node.name
         var_index = node.index
         
-        # Xử lý biến local (set/get)
         if var_name.startswith("local."):
             local_name = var_name[6:]
             return self.local_vars.get(local_name, 0)
         
-        # Xử lý biến target
         if var_name.startswith("target."):
             if not self.target_list:
                 if not self.in_combat:
-                    # Ngoài combat: trả về literal "{target.xxx}"
                     full = f"{{{var_name}}}" + (f".{var_index}" if var_index else "")
                     return full
                 return 0
@@ -94,14 +86,12 @@ class Evaluator:
             actual_var = var_name[7:]
             return target.get_var(actual_var, var_index)
         
-        # Xử lý biến self
         if var_name.startswith("self."):
             actual_var = var_name[5:]
             if not self.current_actor:
                 return 0
             return self.current_actor.get_var(actual_var, var_index)
         
-        # Biến thường (không có prefix) -> lấy từ current_actor
         if self.current_actor:
             return self.current_actor.get_var(var_name, var_index)
         
@@ -111,11 +101,9 @@ class Evaluator:
         left = await self.evaluate(node.left)
         right = await self.evaluate(node.right)
         
-        # Xử lý chuỗi nối &
         if node.op == '&':
             return str(left) + str(right)
         
-        # Chỉ cho phép số học nếu cả hai là số
         try:
             lnum = float(left) if not isinstance(left, str) else float(left)
             rnum = float(right) if not isinstance(right, str) else float(right)
@@ -140,15 +128,13 @@ class Evaluator:
             logger.warning(f"Hàm không tồn tại: {node.name}")
             return 0
         
-        # Đánh giá các tham số (AST -> giá trị)
         evaluated_args = []
         for arg_node in node.args:
             evaluated_args.append(await self.evaluate(arg_node))
         
-        # Gọi hàm (có thể async)
         try:
             if asyncio.iscoroutinefunction(func):
-                result = await func(self, node.args)  # truyền node gốc để có thể parse lại nếu cần
+                result = await func(self, node.args)
             else:
                 result = func(self, node.args)
             return result
@@ -177,7 +163,6 @@ class Evaluator:
         """Xử lý chỉ thị effect: lưu vào effect_pool toàn cục, trả về 0"""
         effect_content = await self._serialize_expression(node.expression)
         self.global_effect_pool[node.effect_name] = effect_content
-        # Có thể lưu thêm tag
         return 0
     
     async def _serialize_expression(self, node: ASTNode) -> str:

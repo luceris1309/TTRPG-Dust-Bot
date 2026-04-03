@@ -1,7 +1,3 @@
-# core/combat_engine.py
-# Quản lý combat: phase, resolve effect, damage, shield, output, turn flow
-# Tích hợp đầy đủ cơ chế action_limit, không còn placeholder
-
 import asyncio
 from typing import List, Dict, Optional, Tuple, Any, Set
 from models.combat_models import (
@@ -79,7 +75,6 @@ class CombatEngine:
                 actor.output.clear()
                 actor.receive_input.clear()
                 actor.input_queue.clear()
-                # Lưu reduce_input dưới dạng công thức (string)
                 actor.reduce_input = actor.base_vars.get("reduce_input", "0")
             logger.info(f"Combat bắt đầu tại channel {combat.channel_id}")
     
@@ -140,8 +135,6 @@ class CombatEngine:
     async def _phase_action(self, combat: Combat):
         await self._assign_next_action_group(combat)
         await self._resolve_effects(combat, "on_phase_start", PlayerState.ACTION)
-        # Ở phase này, bot sẽ chờ lệnh macro từ các actor ACTION
-        # Việc chuyển phase do execute_macro_in_combat hoặc skip_phase đảm nhiệm
     
     async def _assign_next_action_group(self, combat: Combat):
         next_actor = None
@@ -318,7 +311,7 @@ class CombatEngine:
         await self.remove_combat(combat.channel_id)
         logger.info(f"Kết thúc combat tại channel {combat.channel_id}")
     
-    # ========== TƯƠNG TÁC VỚI MACRO ==========
+
     async def execute_macro_in_combat(
         self, combat: Combat, actor: CombatActor, macro_name: str, targets: List[CombatActor]
     ) -> Tuple[str, bool]:

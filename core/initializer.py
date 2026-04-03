@@ -1,6 +1,3 @@
-# core/initializer.py
-# Khởi tạo hệ thống: kiểm tra và tạo các sheet INDEX, CONFIG, Effect, Template
-
 from typing import Dict
 from core.gsheet_client import GoogleSheetsClient
 from config import (
@@ -15,14 +12,12 @@ async def init_system(client: GoogleSheetsClient) -> None:
     """Kiểm tra sự tồn tại của các sheet hệ thống. Nếu thiếu, tạo mới với cấu trúc mặc định"""
     existing_sheets = await client.get_all_sheets()
     
-    # 1. Sheet INDEX
     if SHEET_INDEX not in existing_sheets:
         logger.info(f"Tạo sheet {SHEET_INDEX}")
         await client.create_sheet(SHEET_INDEX, ["discord_id", "sheet_id", "actor_name", "created_at"])
     else:
         logger.info(f"Sheet {SHEET_INDEX} đã tồn tại")
     
-    # 2. Sheet CONFIG
     if SHEET_CONFIG not in existing_sheets:
         logger.info(f"Tạo sheet {SHEET_CONFIG}")
         await client.create_sheet(SHEET_CONFIG, ["var", "a", "load"])
@@ -34,7 +29,6 @@ async def init_system(client: GoogleSheetsClient) -> None:
     else:
         logger.info(f"Sheet {SHEET_CONFIG} đã tồn tại")
     
-    # 3. Sheet Effect
     if SHEET_EFFECT not in existing_sheets:
         logger.info(f"Tạo sheet {SHEET_EFFECT}")
         await client.create_sheet(SHEET_EFFECT, ["var", "a", "load"])
@@ -44,7 +38,6 @@ async def init_system(client: GoogleSheetsClient) -> None:
     else:
         logger.info(f"Sheet {SHEET_EFFECT} đã tồn tại")
     
-    # 4. Sheet Template
     if SHEET_TEMPLATE not in existing_sheets:
         logger.info(f"Tạo sheet {SHEET_TEMPLATE}")
         await client.create_sheet(SHEET_TEMPLATE, ["var", "a", "load"])

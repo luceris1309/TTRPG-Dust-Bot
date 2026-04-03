@@ -1,6 +1,3 @@
-# models/ast_nodes.py
-# Định nghĩa các node cho Abstract Syntax Tree
-
 from dataclasses import dataclass
 from typing import List, Any, Optional
 

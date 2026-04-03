@@ -1,6 +1,3 @@
-# core/function_registry.py
-# Đăng ký tất cả hàm có sẵn cho evaluator
-
 import random
 import math
 import asyncio
@@ -11,7 +8,6 @@ from models.combat_models import EffectMode, ShieldMode, EffectInstance, ShieldI
 
 logger = get_logger()
 
-# Kiểu hàm: nhận evaluator, danh sách AST node args, trả về giá trị (có thể async)
 AsyncFunction = Callable[..., Awaitable[Any]]
 
 class FunctionRegistry:
@@ -250,7 +246,6 @@ class FunctionRegistry:
         macro_name = evaluator.current_macro_name if hasattr(evaluator, 'current_macro_name') else "default"
         
         if mode == "cd":
-            # Cooldown: dựa trên turn_count
             if actor_id not in self._cooldown_tracker:
                 self._cooldown_tracker[actor_id] = {}
             key = f"{macro_name}_cd"
@@ -259,11 +254,10 @@ class FunctionRegistry:
             if current_turn < next_available:
                 logger.debug(f"Cooldown: {macro_name} chưa sẵn sàng (cần {next_available}, hiện {current_turn})")
                 return 0
-            # Đánh dấu lần dùng tiếp theo sau value turn
             self._cooldown_tracker[actor_id][key] = current_turn + value
             return 1
         
-        else:  # chanel mode
+        else:
             if actor_id not in self._wait_counter:
                 self._wait_counter[actor_id] = {}
             key = f"{macro_name}_chanel"
@@ -272,10 +266,7 @@ class FunctionRegistry:
                 self._wait_counter[actor_id][key] = remaining - 1
                 logger.debug(f"Wait chanel: {macro_name} còn {remaining-1} lần")
                 return 0
-            # Đặt lại bộ đếm sau khi đủ? Theo spec: reset về 0 khi đủ lượt
-            # Ở đây, nếu remaining == 0, cho phép thực thi, và sau khi macro chạy xong thì đặt lại = value?
-            # Nhưng wait được gọi trong macro, cần đặt sau khi macro kết thúc? Tốt nhất đặt ngay sau khi cho phép
-            self._wait_counter[actor_id][key] = value  # lần sau phải chờ
+            self._wait_counter[actor_id][key] = value
             return 1
     
     async def _if(self, evaluator, args: List[ASTNode]) -> Any:
@@ -389,7 +380,6 @@ class FunctionRegistry:
         rename = await evaluator.evaluate(args[2]) if len(args) > 2 else None
         duration = int(await evaluator.evaluate(args[3])) if len(args) > 3 else -1
         
-        # Xác định sheet_id nguồn
         sheet_id = None
         if source == "self":
             sheet_id = evaluator.current_actor.actor_id
@@ -401,22 +391,16 @@ class FunctionRegistry:
             logger.warning(f"call: source không hợp lệ {source}")
             return 0
         
-        # Gọi GGS client để duplicate template? Hoặc load actor từ sheet có sẵn?
-        # Ở đây, ta cần tạo CombatActor mới từ sheet_id
         gsheet = evaluator.gsheet_client
         if not gsheet:
             logger.warning("call: không có gsheet_client")
             return 0
         
-        # Lấy thông tin actor từ INDEX? Hoặc tạo mới dựa trên sheet_id
-        # Giả sử có hàm load_actor_from_sheet trong evaluator
         summoned_count = 0
         for i in range(quantity):
             actor_name = rename if rename else sheet_id
             if quantity > 1:
                 actor_name = f"{actor_name}_{i+1}"
-            # Tạo CombatActor mới (tạm thời)
-            # Cần load dữ liệu từ sheet
             new_actor = CombatActor(
                 actor_id=f"summoned_{sheet_id}_{i}_{current_timestamp()}",
                 name=actor_name,
@@ -426,13 +410,12 @@ class FunctionRegistry:
                 max_hp=10,
                 action_limit_remaining=1
             )
-            # Load dữ liệu từ sheet vào base_vars
+
             try:
                 data = await gsheet.batch_load_by_load_column(sheet_id)
                 for var, col_map in data.items():
                     for idx, val in col_map.items():
                         new_actor.base_vars[f"{var}.{idx}"] = val
-                # Đọc hp, max_hp từ base_vars
                 new_actor.hp = int(new_actor.base_vars.get("hp.a", 10))
                 new_actor.max_hp = int(new_actor.base_vars.get("max_hp.a", 10))
                 new_actor.action_limit_remaining = int(new_actor.base_vars.get("action_limit.a", 1))
@@ -440,11 +423,8 @@ class FunctionRegistry:
                 logger.error(f"Lỗi load sheet {sheet_id} cho call: {e}")
                 continue
             
-            # Tạo role tạm trên Discord? (sẽ làm ở cog)
-            # Thêm vào combat hiện tại nếu có
             if evaluator.combat:
                 evaluator.combat.actors.append(new_actor)
-                # Gán team trung lập
                 evaluator.combat.add_actor_to_team(new_actor, "")
             summoned_count += 1
         

@@ -1,6 +1,3 @@
-# bot.py
-# Khởi động bot Discord, kết nối Google Sheets, load cogs
-
 import discord
 from discord.ext import commands
 import asyncio
@@ -12,11 +9,9 @@ from core.initializer import init_system
 from config import SPREADSHEET_ID
 from utils.helpers import setup_logger, get_logger
 
-# Khởi tạo logger
 setup_logger()
 logger = get_logger()
 
-# Cấu hình bot
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 if not TOKEN:
     logger.error("Thiếu biến môi trường DISCORD_BOT_TOKEN")
@@ -48,7 +43,6 @@ class TTRPGBot(commands.Bot):
         from cogs.commands import setup as setup_commands
         await setup_commands(self, self.gsheet_client)
 
-        # Đồng bộ slash commands
         await self.tree.sync()
         logger.info("Đã đồng bộ slash commands")
 
