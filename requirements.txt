@@ -1,0 +1,7 @@
+# requirements.txt
+discord.py>=2.3.0
+gspread>=6.0.0
+gspread-asyncio>=0.7.0
+google-auth>=2.0.0
+lark>=1.1.0
+aiohttp>=3.8.0
